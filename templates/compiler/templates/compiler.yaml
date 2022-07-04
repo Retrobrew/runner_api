@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Values.Project.id }}-{{ .Values.Project.compiler }}
+spec:
+  containers:
+  - name: rust
+    image: {{ .Values.Project.image }}
+    volumeMounts:
+      - name: sourcecode 
+        mountPath: {{ .Values.Project.source_mount }}
+        subPath: "sources/{{.Values.Project.id}}"
+      - name: sourcecode 
+        mountPath: {{ .Values.Project.build_mount }}
+        subPath: "build/{{.Values.Project.id}}"
+    resources:
+      limits:
+        memory: "1024Mi"
+        cpu: "1024m"
+  volumes:
+    - name: sourcecode
+      persistentVolumeClaim:
+        claimName: nfs-pvc
+  imagePullSecrets:
+    - name: regcred
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 60
