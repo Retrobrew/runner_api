@@ -103,6 +103,22 @@ def newFile():
 
     return "Created", 200
 
+@app.route('/write', methods=['POST'])
+def writeFile():
+    project = request.form.get('project')
+    path = request.form.get('file')
+    content = request.form.get('content')
+
+    file = DIR + project + path
+
+    if not exists(file):
+        return "Unknown file", 404
+
+    f = open(file, "w")
+    f.write(content)
+    f.close()
+
+    return "Saved", 200
 
 
 if __name__ == '__main__':
