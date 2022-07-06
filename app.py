@@ -1,12 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from os.path import exists
 import sys
 import subprocess
 import os
 import json
-from flask import jsonify
 
 
 app = Flask(__name__)
+DIR = '/mnt/project_storage/sources/'
 
 @app.route('/compile')
 def compile():
@@ -46,7 +47,7 @@ def execute():
 def getFile():
     id = request.args.get('id')
     path = request.args.get('path')
-    file = '/mnt/project_storage/sources/'+id+path
+    file = DIR + id + path
     f = open(file, "r")
 
     result = {
@@ -73,15 +74,36 @@ def path_to_dict(path):
 def getDirectory():
     id = request.args.get('id')
 
-    return jsonify(path_to_dict('/mnt/project_storage/sources/'+id+'/')), 200
+    return jsonify(path_to_dict(DIR + id + '/')), 200
 
 @app.route('/create')
 def createProject():
     id = request.args.get('id')
+    project = DIR + id
+
+    if exists(project):
+        return "Project with this id already exists", 400
+
     template = request.args.get('template')
     memory = subprocess.Popen(['./create.sh', id, template], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
 
-    return jsonify(path_to_dict('/mnt/project_storage/sources/'+id+'/')), 200
+    return jsonify(path_to_dict(DIR + id + '/')), 200
+
+@app.route('/new-file', methods=['POST'])
+def newFile():
+    project = request.form.get('project')
+    filename = request.form.get('filename')
+    file_extension = request.form.get('extension')
+    file = DIR + project + '/' + filename + file_extension
+
+    if exists(file):
+        return "File with this name already exists", 400
+
+    open(file, 'a').close()
+
+    return "Created", 200
+
+
 
 if __name__ == '__main__':
     from waitress import serve
