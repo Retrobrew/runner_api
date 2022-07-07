@@ -1,3 +1,4 @@
 Project:
   id: 666
   compiler: "rust"
+  version: "latest"

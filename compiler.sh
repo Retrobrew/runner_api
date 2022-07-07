@@ -14,7 +14,7 @@ else
     IMAGE="692527062901.dkr.ecr.eu-west-1.amazonaws.com/gba-c:latest"
 fi
 
-helm install $1-$2 templates/compiler/ --set Project.id=$1 --set Project.compiler=$2 --set Project.image=$IMAGE --set Project.source_mount=$SOURCE_MOUNT --set Project.build_mount=$BUILD_MOUNT > /dev/null
+helm install $1-$2 templates/compiler/ --set Project.id=$1 --set Project.compiler=$2 --set Project.image=$IMAGE --set Project.source_mount=$SOURCE_MOUNT --set Project.build_mount=$BUILD_MOUNT --set Project.build_mount=$3 > /dev/null
 #kubectl apply -f rust_compiler.yaml > /dev/null
 sleep 10
 kubectl logs $1-$2 --follow

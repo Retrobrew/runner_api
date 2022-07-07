@@ -13,12 +13,16 @@ DIR = '/mnt/project_storage/sources/'
 def compile():
     id = request.args.get('id')
     compiler = request.args.get('compiler')
+    version = request.args.get('version')
     print(id)
     print(compiler)
 
+    if not version :
+        version = "latest"
+
     #task = subprocess.run([sys.executable, '-c', 'test.sh'], capture_output=True, text=True)
     #print(task)
-    memory = subprocess.Popen(['./compiler.sh', id, compiler], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+    memory = subprocess.Popen(['./compiler.sh', id, compiler, version], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
     #memory = subprocess.Popen(['echo hi\nhi'], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
 
     print(memory)
@@ -47,8 +51,18 @@ def execute():
 def getFile():
     id = request.args.get('id')
     path = request.args.get('path')
-    file = DIR + id + path
+    version = request.args.get('version') 
+
+    if not version:
+        version = "latest"
+
+    file = DIR + id + "/" + version + path
+
+    if not exists(file):
+        return "File not found", 400
+
     f = open(file, "r")
+
 
     result = {
         "name" : path,
@@ -94,7 +108,7 @@ def newFile():
     project = request.form.get('project')
     filename = request.form.get('filename')
     file_extension = request.form.get('extension')
-    file = DIR + project + '/' + filename + file_extension
+    file = DIR + project + '/latest' + filename + file_extension
 
     if exists(file):
         return "File with this name already exists", 400
@@ -109,7 +123,7 @@ def writeFile():
     path = request.form.get('file')
     content = request.form.get('content')
 
-    file = DIR + project + path
+    file = DIR + project + path + "/latest"
 
     if not exists(file):
         return "Unknown file", 404
@@ -120,6 +134,32 @@ def writeFile():
 
     return "Saved", 200
 
+@app.route('/delete')
+def deleteFile():
+    project = request.args.get('id')
+    path = request.args.get('path')
+
+    file = DIR + project + path + "/latest"
+
+    if not exists(file):
+        return "Unknown file", 404
+
+    os.remove(file)
+
+    return "Deleted", 200
+
+@app.route('/archive', methods=['GET'])
+def archive():
+    id = request.args.get('id')
+    version = request.args.get('version')
+
+    memory = subprocess.Popen(['./archive.sh', id, version], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+
+    print(memory)
+    out, error = memory.communicate()
+    print(out)
+    out = out.replace('\n', '<br>')
+    return out
 
 if __name__ == '__main__':
     from waitress import serve

@@ -9,10 +9,10 @@ spec:
     volumeMounts:
       - name: sourcecode 
         mountPath: {{ .Values.Project.source_mount }}
-        subPath: "sources/{{.Values.Project.id}}"
+        subPath: "sources/{{.Values.Project.id}}/{{.Values.Project.version}}"
       - name: sourcecode 
         mountPath: {{ .Values.Project.build_mount }}
-        subPath: "build/{{.Values.Project.id}}"
+        subPath: "build/{{.Values.Project.id}}/{{.Values.Project.version}}"
     resources:
       limits:
         memory: "1024Mi"
