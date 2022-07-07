@@ -17,7 +17,7 @@ def compile():
     print(id)
     print(compiler)
 
-    if not version :
+    if not version:
         version = "latest"
 
     #task = subprocess.run([sys.executable, '-c', 'test.sh'], capture_output=True, text=True)
@@ -87,8 +87,12 @@ def path_to_dict(path):
 @app.route('/explorer')
 def getDirectory():
     id = request.args.get('id')
+    version = request.args.get('version')
 
-    return jsonify(path_to_dict(DIR + id + '/')), 200
+    if not version:
+        version = "latest"
+
+    return jsonify(path_to_dict(DIR + id + '/' + version)), 200
 
 @app.route('/create')
 def createProject():
@@ -101,14 +105,14 @@ def createProject():
     template = request.args.get('template')
     memory = subprocess.Popen(['./create.sh', id, template], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
 
-    return jsonify(path_to_dict(DIR + id + '/')), 200
+    return jsonify(path_to_dict(project + '/')), 200
 
 @app.route('/new-file', methods=['POST'])
 def newFile():
     project = request.form.get('project')
     filename = request.form.get('filename')
     file_extension = request.form.get('extension')
-    file = DIR + project + '/latest' + filename + file_extension
+    file = DIR + project + '/latest/' + filename + file_extension
 
     if exists(file):
         return "File with this name already exists", 400
@@ -123,7 +127,7 @@ def writeFile():
     path = request.form.get('file')
     content = request.form.get('content')
 
-    file = DIR + project + path + "/latest"
+    file = DIR + project + "/latest/" + path
 
     if not exists(file):
         return "Unknown file", 404
@@ -139,7 +143,7 @@ def deleteFile():
     project = request.args.get('id')
     path = request.args.get('path')
 
-    file = DIR + project + path + "/latest"
+    file = DIR + project + "/latest" + path
 
     if not exists(file):
         return "Unknown file", 404
