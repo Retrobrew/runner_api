@@ -120,6 +120,20 @@ def writeFile():
 
     return "Saved", 200
 
+@app.route('/delete')
+def deleteFile():
+    project = request.args.get('id')
+    path = request.args.get('path')
+
+    file = DIR + project + path
+
+    if not exists(file):
+        return "Unknown file", 404
+
+    os.remove(file)
+
+    return "Deleted", 200
+
 
 if __name__ == '__main__':
     from waitress import serve
