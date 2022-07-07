@@ -34,7 +34,11 @@ def compile():
 @app.route('/execute')
 def execute():
     id = request.args.get('id')
+    version = request.args.get('version')
     print(id)
+
+    if not version :
+        version = "latest"
 
     #task = subprocess.run([sys.executable, '-c', 'test.sh'], capture_output=True, text=True)
     #print(task)
