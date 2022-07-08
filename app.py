@@ -86,13 +86,27 @@ def path_to_dict(path):
         d['type'] = "file"
     return d
 
+def _path(path):
+    d = os.listdir(path)
+    return d
+
 
 
 @app.route('/explorer')
 def getDirectory():
     id = request.args.get('id')
+    version = request.args.get('version')
 
-    return jsonify(path_to_dict(DIR + id + '/')), 200
+    if not version:
+        version = 'latest'
+
+    return jsonify(_path(DIR + id + '/' + version)), 200
+
+@app.route('/version')
+def getVersion():
+    id = request.args.get('id')
+
+    return jsonify(_path(DIR + id + '/')), 200
 
 @app.route('/create')
 def createProject():
