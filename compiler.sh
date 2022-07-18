@@ -16,7 +16,6 @@ fi
 
 helm install $1-$2 templates/compiler/ --set Project.id=$1 --set Project.compiler=$2 --set Project.image=$IMAGE --set Project.source_mount=$SOURCE_MOUNT --set Project.build_mount=$BUILD_MOUNT --set Project.build_mount=$3 > /dev/null
 #kubectl apply -f rust_compiler.yaml > /dev/null
-sleep 10
-kubectl logs $1-$2 --follow
-sleep 10
+kubectl wait pod/$1-$2 --for=condition=Ready
+timeout 60s kubectl logs $1-$2 --follow
 helm delete $1-$2 > /dev/null

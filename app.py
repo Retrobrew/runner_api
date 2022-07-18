@@ -1,3 +1,5 @@
+import array
+import threading
 from flask import Flask, request, jsonify
 from os.path import exists
 import sys
@@ -31,6 +33,11 @@ def compile():
     out = out.replace('\n', '<br>')
     return out
 
+def background_sleep(img):
+    subprocess.Popen(['./timeout.sh', img], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+
+
+
 @app.route('/execute')
 def execute():
     id = request.args.get('id')
@@ -42,6 +49,11 @@ def execute():
 
     #task = subprocess.run([sys.executable, '-c', 'test.sh'], capture_output=True, text=True)
     #print(task)
+    memory = subprocess.Popen(['./executer.sh', id], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+
+    sleep_thread = threading.Thread(target=background_sleep, args=(id,))
+    sleep_thread.start()
+
     memory = subprocess.Popen(['./executer.sh', id], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
     #memory = subprocess.Popen(['echo hi\nhi'], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
 
@@ -100,7 +112,7 @@ def getDirectory():
     if not version:
         version = 'latest'
 
-    return jsonify(_path(DIR + id + '/' + version)), 200
+    return jsonify(path_to_dict(DIR + id + '/' + version)), 200
 
 @app.route('/version')
 def getVersion():
@@ -178,6 +190,51 @@ def archive():
     print(out)
     out = out.replace('\n', '<br>')
     return out
+
+@app.route('/create-lib', methods=['POST'])
+def createLib():
+
+    id = request.form.get('id')
+    name = request.form.get('name')
+    description = request.form.get('description')
+
+    memory = subprocess.Popen(['./create-lib.sh', id, name, description], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+
+    return "Success", 200
+
+@app.route('/import-lib', methods=['POST'])
+def importLib():
+
+    _to = request.form.get('to')
+    _from = request.form.get('from')
+
+    memory = subprocess.Popen(['./import-lib.sh', _to, _from], stdout=subprocess.PIPE, encoding='utf-8', universal_newlines=True)
+
+    return "Success", 200
+
+@app.route('/libs', methods=['GET'])
+def getLibs():
+
+    path = "/mnt/project_storage/libs/"
+    
+    _libs = os.listdir(path)
+    d = [dict() for x in range(len(_libs))]
+
+
+    for i in range(len(_libs)):
+        name = open(path + _libs[i] + "/.info/.name", "r")
+        desc = open(path + _libs[i] + "/.info/.description", "r")
+        d[i] = {
+            "uuid": _libs[i],
+            "name": name.read(),
+            "description": desc.read()
+        }
+
+        name.close()
+        desc.close()
+
+
+    return jsonify(d), 200
 
 if __name__ == '__main__':
     from waitress import serve
